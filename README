@@ -1,0 +1,8 @@
+----------------------------------
+EECS 545 Final Project Winter 2016
+----------------------------------
+The objective of this project is to build rotational invariance
+into Convolutional Neural Networks. 
+
+Networks are built and tested using the Torch framework. All training
+and testing is carried out using MNIST handwritten digit data.
