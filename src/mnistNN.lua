@@ -6,11 +6,14 @@ require 'torch'
 classes = {'1','2','3','4','5','6','7','8','9','10'}
 
 --Load Data
-trainData_temp = torch.load('mnist_train_data.th7');
+local ftrain_data = '../data/mnist_train_data.th7'
+local ftrain_labels = '../data/mnist_train_labels.th7'
+
+trainData_temp = torch.load(ftrain_data);
 trainData = trainData_temp:clone()
 imdim = math.sqrt(trainData:size(2))
 trainData:resize(trainData:size(1),1,imdim,imdim);
-trainLabels = torch.load('mnist_train_labels.th7') + 1;
+trainLabels = torch.load(ftrain_labels) + 1;
 
 
 --Normalize Data
