@@ -6,8 +6,8 @@ require 'torch'
 classes = {'1','2','3','4','5','6','7','8','9','10'}
 
 --Load Data
-local ftrain_data = '../data/mnist_train_data.th7'
-local ftrain_labels = '../data/mnist_train_labels.th7'
+local ftrain_data = '../data/mnist_rotated_train_data.th7'
+local ftrain_labels = '../data/mnist_rotated_train_labels.th7'
 
 trainData_temp = torch.load(ftrain_data);
 trainData = trainData_temp:clone()
@@ -153,15 +153,15 @@ for i = 1,opt.nEpochs do
 		end
 		local preds = model:forward(inputs)
 		for l = 1,opt.batchSize do
-         confusion:add(preds[l], targets[l])
-    end
+         		confusion:add(preds[l], targets[l])
+    		end
 	end
 	print('Test Confusion')
 	print(confusion)
 	confusion:zero()
 
 	if math.fmod(i,5) == 0 then torch.save(opt.file,model) end
-end
+	end
 
 torch.save(opt.file,model)
 
