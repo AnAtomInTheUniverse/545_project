@@ -5,15 +5,17 @@ require 'optim'
 require 'torch'
 classes = {'1','2','3','4','5','6','7','8','9','10'}
 
---Load Data
-local ftrain_data = '../data/mnist_rotated_train_data.th7'
-local ftrain_labels = '../data/mnist_rotated_train_labels.th7'
+-- get data from cmd line
+cmd = torch.CmdLine()
+cmd:option('-d', 'Training Data file')
+cmd:option('-l', 'Training Labels file')
+args = cmd:parse(arg)
 
-trainData_temp = torch.load(ftrain_data);
+trainData_temp = torch.load(args.d);
 trainData = trainData_temp:clone()
 imdim = math.sqrt(trainData:size(2))
 trainData:resize(trainData:size(1),1,imdim,imdim);
-trainLabels = torch.load(ftrain_labels) + 1;
+trainLabels = torch.load(args.l) + 1;
 
 
 --Normalize Data
