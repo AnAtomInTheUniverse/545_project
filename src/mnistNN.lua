@@ -5,9 +5,12 @@ require 'optim'
 require 'torch'
 classes = {'1','2','3','4','5','6','7','8','9','10'}
 
+
 --Load Data
-local ftrain_data = '../data/mnist_train_data.th7'
-local ftrain_labels = '../data/mnist_train_labels.th7'
+local opts = paths.dofile('opts.lua')
+opt = opts.parse(arg)
+local ftrain_data = '../data/mnist_' .. opt.data .. '_train_data.th7'
+local ftrain_labels = '../data/mnist_' .. opt.data.. '_train_labels.th7'
 
 trainData_temp = torch.load(ftrain_data);
 trainData = trainData_temp:clone()
@@ -24,36 +27,24 @@ trainData:mul(1/std);
 
 --SGD Characteristics
 sgdState = {
-	learningRate = 0.03,
-	momentum = 0,
-	learningRateDecay = 0
-}
-
---Hyper Parameters
-opt = {
-	batchSize = 100,
-	nEpochs = 60,
-	nIters = 200,--trainData:size(1)/batchSize
-	file = 'allData.model',
-	coefL1 = 0,
-	coefL2 = 0,
-	numTrain = 10000,
-	numTest = 2000
+	learningRate = opt.LR,
+	momentum = opt.momentum,
+	learningRateDecay = opt.LRdecay
 }
 
 --Create training and validation sets
-opt.nIters = opt.numTrain/opt.batchSize
-valData = trainData[{{opt.numTrain+1,opt.numTrain + opt.numTest},{},{},{}}]
-valLabels = trainLabels[{{opt.numTrain+1,opt.numTrain + opt.numTest},{}}]
+valData = trainData[{{opt.numTrain+1,opt.numTrain + opt.numVal},{},{},{}}]
+valLabels = trainLabels[{{opt.numTrain+1,opt.numTrain + opt.numVal},{}}]
 trainData = trainData[{{1,opt.numTrain},{},{},{}}]
 trainLabels = trainLabels[{{1,opt.numTrain},{}}]
 
---ind = torch.randperm(opt.numTrain + opt.numTest)
+--ind = torch.randperm(opt.numTrain + opt.numVal)
 --valData = trainData[{{ind[]},{},{},{}}]
 
 
 --Define Model
-model = nn.Sequential()
+paths.dofile('../models/'.. opt.model .. '.lua')
+--[[model = nn.Sequential()
 model:add( nn.SpatialConvolutionMM(1,20,5,5) )
 model:add( nn.ReLU() )
 model:add( nn.SpatialMaxPooling(2,2,2,2))
@@ -63,7 +54,7 @@ model:add( nn.SpatialMaxPooling(2,2,2,2))
 model:add( nn.Reshape(40*4*4) )
 model:add( nn.Linear(40*4*4,200) )
 model:add( nn.Tanh() )
-model:add( nn.Linear(200,10) )
+model:add( nn.Linear(200,10) )--]]
 
 parameters,gradParameters = model:getParameters()
 
@@ -140,7 +131,7 @@ for i = 1,opt.nEpochs do
 	confusion:zero()
 	
 --------Validation---------
-	for j = 1,opt.numTest/opt.batchSize do
+	for j = 1,opt.numVal/opt.batchSize do
 		local inputs, targets
 		for k = 1,opt.batchSize do
 			if k == 1 then 
@@ -160,10 +151,10 @@ for i = 1,opt.nEpochs do
 	print(confusion)
 	confusion:zero()
 
-	if math.fmod(i,5) == 0 then torch.save(opt.file,model) end
+	if math.fmod(i,5) == 0 then torch.save(opt.save,model) end
 end
 
-torch.save(opt.file,model)
+torch.save(opt.save,model)
 
 
 
