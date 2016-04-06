@@ -12,10 +12,11 @@ function CycSlice:updateOutput(input)
 	self.output = torch.Tensor(input:size(1)*4,input:size(2),input:size(3),input:size(4))
 
 	for i = 1,input:size(1) do
-		self.output[{i,{},{},{}}] = input[{i,{},{},{}]
+		self.output[{i,{},{},{}}] = input[{i,{},{},{}}]
 		self.output[{4 + i,{},{},{}}] = torch.bmm(input[{i,{},{},{}}]:transpose(2,3),rot)
 		self.output[{8 + i,{},{},{}}] = torch.bmm(rot,torch.bmm(input[{i,{},{},{}}],rot))
 		self.output[{12 + i,{},{},{}}] = torch.bmm(rot,input[{i,{},{},{}}]:transpose(2,3))
+	end
 	--[[	
 	local input90 = torch.zeros(input:size())
 	local input180 = torch.zeros(input:size())
@@ -28,6 +29,7 @@ function CycSlice:updateOutput(input)
 	--output = torch.cat({input,input90,input180,input270},1)
 	self.output:cat({input,input90,input180,input270},1) --]]
 	return self.output
+end
 
 ----------------------------------------------------------------
 
@@ -47,6 +49,7 @@ function MeanCycPool:updateOutput(input)
 	end
 	--self.output:copy(output)
 	return self.output
+end
 
 function MeanCycPool:updateGradInput(input,gradOutput)
 	local rot = torch.eye(gradOutput:size(4))
@@ -54,13 +57,15 @@ function MeanCycPool:updateGradInput(input,gradOutput)
 	rot = rot:repeatTensor(gradOutput:size(2),1,1)	
 	--self.gradInput:copy(input)
 	local oldBatch = gradOutput:size(1)
-	for i = 1,oldBatch
+	self.gradInput = torch.zeros(input:size())
+	for i = 1,oldBatch do 
 		self.gradInput[{i,{},{},{}}] = gradOutput[{i,{},{},{}}]/4
 		self.gradInput[{oldBatch + i,{},{},{}}] = torch.bmm(gradOutput[{i,{},{},{}}]:transpose(2,3),rot)/4
 		self.gradInput[{2*oldBatch + i,{},{},{}}] = torch.bmm(rot,torch.bmm(gradOutput[{i,{},{},{}}],rot))/4
 		self.gradInput[{3*oldBatch + i,{},{},{}}] = torch.bmm(rot,gradOutput[{i,{},{},{}}]:transpose(2,3))/4
 	end
 	return self.gradInput
+end
 
 
 
