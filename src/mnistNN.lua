@@ -12,6 +12,7 @@ opt = opts.parse(arg)
 local ftrain_data = '../data/mnist_' .. opt.data .. '_train_data.th7'
 local ftrain_labels = '../data/mnist_' .. opt.data.. '_train_labels.th7'
 
+
 trainData_temp = torch.load(ftrain_data);
 trainData = trainData_temp:clone()
 imdim = math.sqrt(trainData:size(2))
@@ -144,15 +145,17 @@ for i = 1,opt.nEpochs do
 		end
 		local preds = model:forward(inputs)
 		for l = 1,opt.batchSize do
-         confusion:add(preds[l], targets[l])
-    end
+         		confusion:add(preds[l], targets[l])
+    		end
 	end
 	print('Test Confusion')
 	print(confusion)
 	confusion:zero()
 
+
 	if math.fmod(i,5) == 0 then torch.save(opt.save,model) end
 end
+
 
 torch.save(opt.save,model)
 
