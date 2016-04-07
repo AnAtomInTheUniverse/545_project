@@ -3,6 +3,7 @@ require 'nn'
 require 'math'
 require 'optim'
 
+paths.dofile('../models/modules.lua')
 cmd = torch.CmdLine()
 cmd:option('-m', 'Model file name')
 cmd:option('-t', 'Test data file name')
@@ -12,7 +13,7 @@ args = cmd:parse(arg)
 
 fwrite = args.o
 
-batchSize = 200
+batchSize = 4
 
 model = torch.load(args.m)
 data_temp = torch.load(args.t);
