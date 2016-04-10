@@ -2,7 +2,7 @@ require 'image'
 
 --------------------------------------------------------------
 
-local CycSlice = torch.class('nn.CycSlice', 'nn.Module')
+local CycSlice, Parent = torch.class('nn.CycSlice', 'nn.Module')
 
 function CycSlice:updateOutput(input)
 	local rot = torch.eye(input:size(4))
@@ -26,8 +26,8 @@ function CycSlice:updateGradInput(input,gradOutput)
 	rot = rot:repeatTensor(gradOutput:size(2),1,1)
 	local batch = input:size(1)
 	self.gradInput = torch.zeros(input:size())
-	for i = 1,inBatch do
-		self.gradInput[{i,{},{},{}}}] = 
+	for i = 1, batch do
+		self.gradInput[{i,{},{},{}}] = 
 				self.gradOutput[{i,{},{},{}}]
 				+ torch.bmm(rot,self.gradOutput[{batch + i,{},{},{}}]:transpose(2,3)) --perform 270 rotation
 				+ torch.bmm(rot,torch.bmm(self.gradOutput[{2*batch + i,{},{},{}}],rot)) -- perform 180 rotation
