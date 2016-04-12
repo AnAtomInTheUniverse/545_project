@@ -29,10 +29,10 @@ function CycSlice:updateGradInput(input,gradOutput)
 	self.gradInput = torch.zeros(input:size())
 	for i = 1, batch do
 		self.gradInput[{i,{},{},{}}] = 
-				self.gradOutput[{i,{},{},{}}]
-				+ torch.bmm(rot,self.gradOutput[{batch + i,{},{},{}}]:transpose(2,3)) --perform 270 rotation
-				+ torch.bmm(rot,torch.bmm(self.gradOutput[{2*batch + i,{},{},{}}],rot)) -- perform 180 rotation
-				+ torch.bmm(self.gradOutput[{3*batch + i,{},{},{}}]:transpose(2,3),rot) -- perform 90 rotation
+				gradOutput[{i,{},{},{}}]
+				+ torch.bmm(rot,gradOutput[{batch + i,{},{},{}}]:transpose(2,3)) --perform 270 rotation
+				+ torch.bmm(rot,torch.bmm(gradOutput[{2*batch + i,{},{},{}}],rot)) -- perform 180 rotation
+				+ torch.bmm(gradOutput[{3*batch + i,{},{},{}}]:transpose(2,3),rot) -- perform 90 rotation
 	end
 	return self.gradInput
 end
@@ -105,11 +105,11 @@ function CycSlice8:updateGradInput(input,gradOutput)
 	self.gradInput = torch.zeros(input:size())
 	for i = 1, batch do
 		self.gradInput[{i,{},{},{}}] = 
-				self.gradOutput[{i,{},{},{}}]
-				+ torch.bmm(rot,(self.gradOutput[{batch + i,{},{},{}}] + image.rotate(self.gradOutput[{5*batch + i,{},{},{}}],math.pi/4,'bilinear')):transpose(2,3)) --perform 270 rotation
-				+ torch.bmm(rot,torch.bmm(self.gradOutput[{2*batch + i,{},{},{}}] + image.rotate(self.gradOutput[{6*batch + i,{},{},{}}],math.pi/4,'bilinear'),rot)) -- perform 180 rotation
-				+ torch.bmm((self.gradOutput[{3*batch + i,{},{},{}}] + image.rotate(self.gradOutput[{7*batch + i,{},{},{}}],math.pi/4,'bilinear')):transpose(2,3),rot) -- perform 90 rotation
-				+ image.rotate(self.gradOutput[{4*batch + i,{},{},{}}],math.pi/4,'bilinear') --perform -45 degree rotation
+				gradOutput[{i,{},{},{}}]
+				+ torch.bmm(rot,(gradOutput[{batch + i,{},{},{}}] + image.rotate(gradOutput[{5*batch + i,{},{},{}}],math.pi/4,'bilinear')):transpose(2,3)) --perform 270 rotation
+				+ torch.bmm(rot,torch.bmm(gradOutput[{2*batch + i,{},{},{}}] + image.rotate(gradOutput[{6*batch + i,{},{},{}}],math.pi/4,'bilinear'),rot)) -- perform 180 rotation
+				+ torch.bmm((gradOutput[{3*batch + i,{},{},{}}] + image.rotate(gradOutput[{7*batch + i,{},{},{}}],math.pi/4,'bilinear')):transpose(2,3),rot) -- perform 90 rotation
+				+ image.rotate(gradOutput[{4*batch + i,{},{},{}}],math.pi/4,'bilinear') --perform -45 degree rotation
 
 	end
 	return self.gradInput
