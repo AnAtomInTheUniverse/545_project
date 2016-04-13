@@ -16,6 +16,7 @@ function M.parse(arg)
 		cmd:option('-LR', 0.03, 'SGD learning rate')
 		cmd:option('-momentum', 0, 'SGD momentum')
 		cmd:option('-LRdecay', 0, 'SGD learning rate decay')
+		cmd:option('-method','sgd','Method for optimization (nag or sgd)')
 		local opt = cmd:parse(arg or {})
 		opt.save = '../models/' .. opt.model .. '_' .. opt.data .. '.model'
 		opt.nIters = opt.numTrain/opt.batchSize

@@ -33,6 +33,10 @@ sgdState = {
 	learningRateDecay = opt.LRdecay
 }
 
+if opt.method == 'nag' then
+	sgdState.momentum = 0.5
+end
+
 --Create training and validation sets
 valData = trainData[{{opt.numTrain+1,opt.numTrain + opt.numVal},{},{},{}}]
 valLabels = trainLabels[{{opt.numTrain+1,opt.numTrain + opt.numVal},{}}]
@@ -125,7 +129,13 @@ for i = 1,opt.nEpochs do
 			return f,gradParameters
 		end
 
-		optim.sgd(feval,parameters,sgdState)
+		if opt.method == 'nag' then
+			optim.nag(feval,parameters,sgdState)
+		else
+			optim.sgd(feval,parameters,sgdState)
+		end
+
+
 	end
 	print('Train Confusion')
 	print(confusion)
