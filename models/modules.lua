@@ -74,6 +74,68 @@ end
 
 ---------------------------------------------------------------
 
+local CycRoll, Parent = torch.class('nn.CycRoll', 'nn.Module')
+
+function CycRoll:updateOutput(input)
+	local rot = torch.eye(input:size(4))
+	rot = image.hflip(rot)
+	rot = rot:repeatTensor(input:size(2),1,1)
+	local batch=input:size(1)/4
+	self.output = torch.Tensor(4*batch,4*input:size(2),input:size(3),input:size(4))
+
+	for i = 1,batch do
+		self.output[{i,{},{},{}}] = torch.cat({input[{i,{},{},{}}],  
+				torch.bmm(rot,input[{batch + i,{},{},{}}]:transpose(2,3)),
+				torch.bmm(rot,torch.bmm(input[{batch*2 + i,{},{},{}}],rot)),
+				torch.bmm(input[{batch*3 + i,{},{},{}}]:transpose(2,3),rot)},1) --0
+		self.output[{batch + i,{},{},{}}] = torch.cat({input[{batch + i,{},{},{}}], 
+				torch.bmm(rot,input[{batch*2+i,{},{},{}}]:transpose(2,3)),				
+				torch.bmm(rot,torch.bmm(input[{batch*3 + i,{},{},{}}],rot)),
+				torch.bmm(input[{i,{},{},{}}]:transpose(2,3),rot)},1) --90
+		self.output[{2*batch + i,{},{},{}}] = torch.cat({input[{2*batch + i,{},{},{}}], 
+				torch.bmm(rot,input[{batch*3+i,{},{},{}}]:transpose(2,3)),				
+				torch.bmm(rot,torch.bmm(input[{i,{},{},{}}],rot)),
+				torch.bmm(input[{batch+i,{},{},{}}]:transpose(2,3),rot)},1) --180
+		self.output[{3*batch + i,{},{},{}}] = torch.cat({input[{3*batch + i,{},{},{}}], 
+				torch.bmm(rot,input[{i,{},{},{}}]:transpose(2,3)),				
+				torch.bmm(rot,torch.bmm(input[{batch + i,{},{},{}}],rot)),
+				torch.bmm(input[{2*batch + i,{},{},{}}]:transpose(2,3),rot)},1) --270
+	end
+	return self.output
+end
+
+function CycRoll:updateGradInput(input,gradOutput)
+	local rot = torch.eye(input:size(4))
+	rot = image.hflip(rot)
+	rot = rot:repeatTensor(input:size(2),1,1)
+	local batch = input:size(1)/4
+	local filters = input:size(2)
+	self.gradInput = torch.zeros(input:size())
+	for i = 1,batch do 
+		self.gradInput[{i,{},{},{}}] = (gradOutput[{i,{1,filters},{},{}}]
+						+ torch.bmm(rot,gradOutput[{batch+i,{3*filters+1,4*filters},{},{}}]:transpose(2,3))
+						+ torch.bmm(rot,torch.bmm(gradOutput[{2*batch+i,{2*filters+1,3*filters},{},{}}],rot))
+						+	torch.bmm(gradOutput[{3*batch+i,{filters+1,2*filters},{},{}}]:transpose(2,3),rot))
+		self.gradInput[{batch + i,{},{},{}}] = (gradOutput[{batch+i,{1,filters},{},{}}]
+						+ torch.bmm(rot,gradOutput[{2*batch+i,{3*filters+1,4*filters},{},{}}]:transpose(2,3))
+						+ torch.bmm(rot,torch.bmm(gradOutput[{3*batch+i,{2*filters+1,3*filters},{},{}}],rot))
+						+	torch.bmm(gradOutput[{i,{filters+1,2*filters},{},{}}]:transpose(2,3),rot))
+		self.gradInput[{2*batch + i,{},{},{}}] = (gradOutput[{2*batch+i,{1,filters},{},{}}]
+						+ torch.bmm(rot,gradOutput[{3*batch+i,{3*filters+1,4*filters},{},{}}]:transpose(2,3))
+						+ torch.bmm(rot,torch.bmm(gradOutput[{i,{2*filters+1,3*filters},{},{}}],rot))
+						+	torch.bmm(gradOutput[{batch+i,{filters+1,2*filters},{},{}}]:transpose(2,3),rot))
+		self.gradInput[{3*batch + i,{},{},{}}] = (gradOutput[{3*batch+i,{1,filters},{},{}}]
+						+ torch.bmm(rot,gradOutput[{i,{3*filters+1,4*filters},{},{}}]:transpose(2,3))
+						+ torch.bmm(rot,torch.bmm(gradOutput[{batch + i,{2*filters+1,3*filters},{},{}}],rot))
+						+	torch.bmm(gradOutput[{2*batch+i,{filters+1,2*filters},{},{}}]:transpose(2,3),rot))
+	end
+	return self.gradInput
+end
+
+
+
+----------------------------------------------------------------
+
 local CycSlice8, Parent = torch.class('nn.CycSlice8', 'nn.Module')
 
 function CycSlice8:updateOutput(input)
