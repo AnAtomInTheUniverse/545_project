@@ -15,11 +15,13 @@ local batch = 1
 local filt = 2
 local img_dim = 4
 
-local input = torch.Tensor(batch, filt, img_dim, img_dim):fill(1)
-local grad_output = torch.Tensor(batch, filt*4, img_dim, img_dim):zero()
+local input = torch.Tensor(batch, filt, img_dim, img_dim):fill(math.random(0,255))
+local grad_output = torch.Tensor(batch*8, filt, img_dim, img_dim):zero()
 grad_output:fill(math.random(0,255))
 print(grad_output[{{1},{1},{},{}}])
-local module = nn.CycSlice(input, grad_output)
+--local module = nn.CycSlice(input, grad_output)
+--local module = nn.MeanCycPool()
+local module = nn.CycSlice8()
 module:updateGradInput(input, grad_output)
 
 -- test backprop with Jacobian
