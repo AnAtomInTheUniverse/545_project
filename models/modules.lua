@@ -1,9 +1,10 @@
 require 'image'
-
+--Modules based on http://arxiv.org/pdf/1602.02660.pdf
 --All rotations are clockwise
 --------------------------------------------------------------
 
 local CycSlice, Parent = torch.class('nn.CycSlice', 'nn.Module')
+--Perform Cyclical Slicing with 4 slices 
 
 function CycSlice:updateOutput(input)
 	local rot = torch.eye(input:size(4))
@@ -39,6 +40,7 @@ end
 ----------------------------------------------------------------
 
 local MeanCycPool = torch.class('nn.MeanCycPool', 'nn.Module')
+--Perform Mean Pooling for 4 slices with rotation back to original orientation
 
 function MeanCycPool:updateOutput(input)
 	local rot = torch.eye(input:size(4))
@@ -74,9 +76,10 @@ end
 
 ----------------------------------------------------------------
 
-local MeanCycPool2 = torch.class('nn.MeanCycPool2', 'nn.Module')
+local MeanCycPoolB = torch.class('nn.MeanCycPool2', 'nn.Module')
+--Perform Mean Pooling on 4 slices without reorientation 
 
-function MeanCycPool2:updateOutput(input)
+function MeanCycPoolB:updateOutput(input)
 	local rot = torch.eye(input:size(4))
 	rot = image.hflip(rot)
 	rot = rot:repeatTensor(input:size(2),1,1)
@@ -92,7 +95,7 @@ function MeanCycPool2:updateOutput(input)
 	return self.output
 end
 
-function MeanCycPool2:updateGradInput(input,gradOutput)
+function MeanCycPoolB:updateGradInput(input,gradOutput)
 	local rot = torch.eye(gradOutput:size(4))
 	rot = image.hflip(rot)
 	rot = rot:repeatTensor(gradOutput:size(2),1,1)	
@@ -111,6 +114,9 @@ end
 ---------------------------------------------------------------
 
 local CycRoll, Parent = torch.class('nn.CycRoll', 'nn.Module')
+--Increases filter size by 4 for each rotated image by rotating each images'
+--rotated counterparts into its orientation and concatenating as filters.
+--Built for slices of 4
 
 function CycRoll:updateOutput(input)
 	local rot = torch.eye(input:size(4))
@@ -173,6 +179,7 @@ end
 ----------------------------------------------------------------
 
 local CycSlice8, Parent = torch.class('nn.CycSlice8', 'nn.Module')
+--Performs Cyclical Slicing with 8 slices.
 
 function CycSlice8:updateOutput(input)
 	local rot = torch.eye(input:size(4))
@@ -215,6 +222,7 @@ end
 ----------------------------------------------------------------
 
 local MeanCycPool8 = torch.class('nn.MeanCycPool8', 'nn.Module')
+--Performs Mean Pooling on 8 slices
 
 function MeanCycPool8:updateOutput(input)
 	local rot = torch.eye(input:size(4))
